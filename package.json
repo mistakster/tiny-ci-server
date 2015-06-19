@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "name": "tiny-ci-server",
+  "version": "1.0.0",
+  "description": "Tini CI server",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.13.1",
+    "express": "^4.12.4"
+  }
+}
