@@ -17,31 +17,37 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 function sendResponse(res, body, status) {
+	res.setHeader('Content-Type', 'text/plain');
+	res.setHeader('Content-Length', body.length);
 	if (status) {
 		res.sendStatus(status);
 	}
-	res.setHeader('Content-Type', 'text/plain');
-	res.setHeader('Content-Length', body.length);
 	res.end(body);
 }
 
-function checkRepoAndBranch(payload) {
-	/*
-	 if (payload.repository.slug == GIT_REPO) {
-	 isRequiredBranch = payload.commits
-	 .some(function (c) {
-	 return c.branch == GIT_BRANCH;
-	 });
-	 */
-	return false;
+function checkGitHubRepoAndBranch(payload) {
+	var result = false;
+
+	if (payload.repository.name === GIT_REPO) {
+		result = payload.commits
+			.some(function (c) {
+				return c.branch == GIT_BRANCH;
+			});
+	}
+
+	return result;
+}
+
+function isObject(obj) {
+	return !!obj && typeof obj === 'object';
 }
 
 app.post(HTTP_PATH, function (req, res) {
 	var payload = req.body;
 
 	log ('Check request');
-	if (typeof payload === 'object') {
-		if (checkRepoAndBranch(payload)) {
+	if (isObject(payload) && isObject(payload.repository) && isObject(payload.commits)) {
+		if (checkGitHubRepoAndBranch(payload)) {
 			log('Run task');
 			exec(BUILD_TASK, function (err, stdout, stderr) {
 				log(stderr);
