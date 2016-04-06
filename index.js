@@ -16,43 +16,42 @@ var app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-function sendResponse(res, body) {
+function sendResponse(res, body, status) {
+	if (status) {
+		res.sendStatus(status);
+	}
 	res.setHeader('Content-Type', 'text/plain');
 	res.setHeader('Content-Length', body.length);
 	res.end(body);
 }
 
+function checkRepoAndBranch(payload) {
+	/*
+	 if (payload.repository.slug == GIT_REPO) {
+	 isRequiredBranch = payload.commits
+	 .some(function (c) {
+	 return c.branch == GIT_BRANCH;
+	 });
+	 */
+	return false;
+}
+
 app.post(HTTP_PATH, function (req, res) {
-	var isRequiredBranch;
-	var payload;
+	var payload = req.body;
 
-	try {
-		payload = JSON.parse(req.params.payload);
-	} catch(ex) {
-
-	}
-
-	console.log('==============');
-	console.log(payload);
-	console.log('==============');
-	console.log(req.body);
-	console.log('==============');
-
-	if (payload.repository.slug == GIT_REPO) {
-		isRequiredBranch = payload.commits
-			.some(function (c) {
-				return c.branch == GIT_BRANCH;
-			});
-
-		if (isRequiredBranch) {
+	log ('Check request');
+	if (typeof payload === 'object') {
+		if (checkRepoAndBranch(payload)) {
 			log('Run task');
 			exec(BUILD_TASK, function (err, stdout, stderr) {
 				log(stderr);
 			});
 		}
-	}
 
-	sendResponse(res, 'OK\n');
+		sendResponse(res, 'OK\n');
+	} else {
+		sendResponse(res, 'Bad Request\n', 400);
+	}
 });
 
 log('Started');
